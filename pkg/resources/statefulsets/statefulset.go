@@ -391,8 +391,9 @@ func redisInitContainer(cluster *redisv1alpha1.DistributedRedisCluster, password
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{
-				Name:      redisStorageVolumeName,
-				MountPath: redisv1alpha1.BackupDumpDir,
+				Name:        redisStorageVolumeName,
+				MountPath:   redisv1alpha1.BackupDumpDir,
+				SubPathExpr: "$(POD_NAME)", // ! add SubPathExpr
 			},
 			{
 				Name:      "rcloneconfig",
