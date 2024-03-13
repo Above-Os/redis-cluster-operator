@@ -23,7 +23,8 @@ var (
 
 func getLabels(cluster *redisv1alpha1.DistributedRedisCluster) map[string]string {
 	dynLabels := map[string]string{
-		redisv1alpha1.LabelClusterName: cluster.Name,
+		redisv1alpha1.LabelClusterName:         cluster.Name,
+		"applications.app.bytetrade.io/author": "bytetrade.io",
 	}
 	return utils.MergeLabels(defaultLabels, dynLabels, cluster.Labels)
 }

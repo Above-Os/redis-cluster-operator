@@ -272,6 +272,7 @@ func (r *ReconcileDistributedRedisCluster) Reconcile(ctx context.Context, reques
 	// remove init container and restore volume that referenced in stateulset for
 	// dump RDB file from backup, then the redis master node will be restart.
 	if instance.IsRestoreFromBackup() && instance.IsRestoreRunning() {
+		reqLogger.Info("begin restore")
 		reqLogger.Info("update restore redis cluster cr")
 		instance.Status.Restore.Phase = redisv1alpha1.RestorePhaseRestart
 		if err := r.crController.UpdateCRStatus(instance); err != nil {
@@ -295,6 +296,7 @@ func (r *ReconcileDistributedRedisCluster) Reconcile(ctx context.Context, reques
 
 	// restore succeeded, then update cr and wait for the next Reconcile loop
 	if instance.IsRestoreFromBackup() && instance.IsRestoreRestarting() {
+		reqLogger.Info("restore succeed")
 		reqLogger.Info("update restore redis cluster cr")
 		instance.Status.Restore.Phase = redisv1alpha1.RestorePhaseSucceeded
 		if err := r.crController.UpdateCRStatus(instance); err != nil {
@@ -306,7 +308,8 @@ func (r *ReconcileDistributedRedisCluster) Reconcile(ctx context.Context, reques
 		if err := r.crController.UpdateCR(instance); err != nil {
 			return reconcile.Result{}, err
 		}
-		return reconcile.Result{}, nil
+		// ! removed
+		// return reconcile.Result{}, nil
 	}
 
 	if err := admin.SetConfigIfNeed(instance.Spec.Config); err != nil {
