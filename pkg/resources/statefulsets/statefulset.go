@@ -100,11 +100,15 @@ func NewStatefulSetForCR(cluster *redisv1alpha1.DistributedRedisCluster, ssName,
 func getAffinity(cluster *redisv1alpha1.DistributedRedisCluster, labels map[string]string) *corev1.Affinity {
 	affinity := cluster.Spec.Affinity
 	if affinity != nil {
-		return affinity
+		if !cluster.Spec.RequiredAntiAffinity {
+			return affinity
+		}
 	}
 
 	if cluster.Spec.RequiredAntiAffinity {
 		return &corev1.Affinity{
+			PodAffinity:  affinity.PodAffinity,
+			NodeAffinity: affinity.NodeAffinity,
 			PodAntiAffinity: &corev1.PodAntiAffinity{
 				PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
 					{
