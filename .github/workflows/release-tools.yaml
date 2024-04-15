@@ -23,6 +23,6 @@ jobs:
               uses: docker/build-push-action@v3
               with:
                   push: true
-                  tags: bytetrade/redis-backup-tools:${{ github.event.inputs.tags }}
+                  tags: beclab/redis-backup-tools:${{ github.event.inputs.tags }}
                   file: tools/Dockerfile.backup
 
