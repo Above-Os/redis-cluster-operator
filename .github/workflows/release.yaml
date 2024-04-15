@@ -23,6 +23,6 @@ jobs:
               uses: docker/build-push-action@v3
               with:
                   push: true
-                  tags: bytetrade/redis-cluster-operator:${{ github.event.inputs.tags }}
+                  tags: beclab/redis-cluster-operator:${{ github.event.inputs.tags }}
                   file: Dockerfile
 
