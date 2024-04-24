@@ -17,6 +17,7 @@ import (
 	// sdkVersion "github.com/operator-framework/operator-sdk/version"
 
 	"github.com/spf13/pflag"
+	"go.uber.org/zap/zapcore"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -61,6 +62,7 @@ func main() {
 
 	opts := zap.Options{
 		Development: true,
+		TimeEncoder: zapcore.ISO8601TimeEncoder,
 	}
 
 	opts.BindFlags(flag.CommandLine)
