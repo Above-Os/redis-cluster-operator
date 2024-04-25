@@ -2,6 +2,7 @@ package redisclusterbackup
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/go-logr/logr"
 	"github.com/spf13/pflag"
@@ -204,6 +205,23 @@ func (r *ReconcileRedisClusterBackup) Reconcile(ctx context.Context, request rec
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
+	}
+
+	if instance.ObjectMeta.Annotations != nil {
+		cfg, ok := instance.ObjectMeta.Annotations["kubectl.kubernetes.io/last-applied-configuration"]
+		if ok && cfg != "" {
+			lastBackup := &redisv1alpha1.RedisClusterBackup{}
+			if err = json.Unmarshal([]byte(cfg), lastBackup); err == nil {
+				reqLogger.Info("[BACKUP] last backup",
+					"startTime", lastBackup.Status.StartTime.Time.String(),
+					"phase", lastBackup.Status.Phase)
+				if lastBackup.Status.Phase == "Succeeded" {
+					instance.Status = lastBackup.Status
+					err := r.crController.UpdateCRStatus(instance)
+					return reconcile.Result{}, err
+				}
+			}
+		}
 	}
 
 	//// Check if the RedisClusterBackup instance is marked to be deleted, which is
