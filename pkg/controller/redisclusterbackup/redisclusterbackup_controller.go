@@ -20,6 +20,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
+	"github.com/ucloud/redis-cluster-operator/pkg/apis/redis/v1alpha1"
 	redisv1alpha1 "github.com/ucloud/redis-cluster-operator/pkg/apis/redis/v1alpha1"
 	"github.com/ucloud/redis-cluster-operator/pkg/k8sutil"
 	"github.com/ucloud/redis-cluster-operator/pkg/utils"
@@ -207,15 +208,20 @@ func (r *ReconcileRedisClusterBackup) Reconcile(ctx context.Context, request rec
 		return reconcile.Result{}, err
 	}
 
+	if instance.Status.Phase == v1alpha1.BackupPhaseSucceeded {
+		return reconcile.Result{}, nil
+	}
+
 	if instance.ObjectMeta.Annotations != nil {
 		cfg, ok := instance.ObjectMeta.Annotations["kubectl.kubernetes.io/last-applied-configuration"]
 		if ok && cfg != "" {
 			lastBackup := &redisv1alpha1.RedisClusterBackup{}
 			if err = json.Unmarshal([]byte(cfg), lastBackup); err == nil {
 				reqLogger.Info("[BACKUP] last backup",
+					"-", "-",
 					"startTime", lastBackup.Status.StartTime.Time.String(),
 					"phase", lastBackup.Status.Phase)
-				if lastBackup.Status.Phase == "Succeeded" {
+				if lastBackup.Status.Phase == v1alpha1.BackupPhaseSucceeded {
 					instance.Status = lastBackup.Status
 					err := r.crController.UpdateCRStatus(instance)
 					return reconcile.Result{}, err
