@@ -208,8 +208,23 @@ func (r *ReconcileRedisClusterBackup) Reconcile(ctx context.Context, request rec
 		return reconcile.Result{}, err
 	}
 
+	ib, _ := json.Marshal(instance)
+	reqLogger.Info("[BACKUP] reconcile instance",
+		"-", "-",
+		"labels", instance.ObjectMeta.Labels,
+		"data", string(ib),
+	)
+
 	if instance.Status.Phase == v1alpha1.BackupPhaseSucceeded {
 		return reconcile.Result{}, nil
+	}
+
+	labels := instance.ObjectMeta.Labels
+	if labels != nil {
+		_, ok := labels["velero.io/restore-name"]
+		if ok {
+			return reconcile.Result{}, nil
+		}
 	}
 
 	if instance.ObjectMeta.Annotations != nil {
@@ -223,13 +238,13 @@ func (r *ReconcileRedisClusterBackup) Reconcile(ctx context.Context, request rec
 					"phase", lastBackup.Status.Phase)
 				if lastBackup.Status.Phase == v1alpha1.BackupPhaseSucceeded {
 					instance.Status = lastBackup.Status
-					err := r.crController.UpdateCRStatus(instance)
-					return reconcile.Result{}, err
+					return reconcile.Result{}, nil
 				}
 			}
 		}
 	}
 
+	reqLogger.Info("[BACKUP] create new backup")
 	//// Check if the RedisClusterBackup instance is marked to be deleted, which is
 	//// indicated by the deletion timestamp being set.
 	//isBackupMarkedToBeDeleted := instance.GetDeletionTimestamp() != nil
